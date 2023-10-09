@@ -1,4 +1,4 @@
-# Proyecto - Computaciom Paralela
+# Proyecto 2 - Computacion Paralela
 
 ## Integrantes 
 
@@ -8,7 +8,7 @@
 
 ## Parte A
 
-El problema arreglado es `brutalforce_fix.c`. Para ejecutar dicho programa se deben de seguir las siguientes instrucciones:
+El programa arreglado es `brutalforce_fix.c`. Para ejecutar dicho programa se deben de seguir las siguientes instrucciones:
 
 ### Ejecucion
 
