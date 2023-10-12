@@ -25,6 +25,8 @@ El programa arreglado es `brutalforce_fix2.c`. Para ejecutar dicho programa se d
 
 ### Ejercicio 4
 
+El programa es `bsecuencial.c`. Para ejecutar dicho programa se deben de seguir las siguientes instrucciones:
+
 1. Compilar utilizando el comando:
 
 `gcc -o des_decrypt des_decrypt.c -lcrypto`
