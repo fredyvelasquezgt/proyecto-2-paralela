@@ -33,3 +33,6 @@ El programa arreglado es `brutalforce_fix2.c`. Para ejecutar dicho programa se d
 
 `./des_decrypt [longitud_llave]`
 
+
+## Parte B
+
