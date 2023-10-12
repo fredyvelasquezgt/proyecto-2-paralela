@@ -8,6 +8,8 @@
 
 ## Parte A
 
+### Ejercicio 3
+
 El programa arreglado es `brutalforce_fix2.c`. Para ejecutar dicho programa se deben de seguir las siguientes instrucciones:
 
 ### Ejecucion
@@ -21,5 +23,13 @@ El programa arreglado es `brutalforce_fix2.c`. Para ejecutar dicho programa se d
 
 `mpirun -np 4 ./bruteforce00`
 
+### Ejercicio 4
 
+1. Compilar utilizando el comando:
+
+`gcc -o des_decrypt des_decrypt.c -lcrypto`
+
+2. Ejecucion. El siguiente comando ejecuta el programa con 4 procesos
+
+`./des_decrypt [longitud_llave]`
 
