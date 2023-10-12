@@ -8,21 +8,18 @@
 
 ## Parte A
 
-El programa arreglado es `brutalforce_fix.c`. Para ejecutar dicho programa se deben de seguir las siguientes instrucciones:
+El programa arreglado es `brutalforce_fix2.c`. Para ejecutar dicho programa se deben de seguir las siguientes instrucciones:
 
 ### Ejecucion
 
-1. Asegurarse de contar con las instalaciones correspondientes. Para instalar lo requerido por el programa ejecutar el siguiente comando:
 
-`sudo apt-get install mpich libssl-dev`
+1. Compilar utilizando el comando:
 
-2. Compilar utilizando el comando:
-
-`mpicc -o bruteforce bruteforce.c -lssl -lcrypto`
+`mpicc -o bruteforce00 bruteforce00.c -I/path/to/openssl/include -lcrypto`
 
 3. Ejecucion. El siguiente comando ejecuta el programa con 4 procesos 
 
-`mpirun -n 4 ./bruteforce`
+`mpirun -np 4 ./bruteforce00`
 
 
 
