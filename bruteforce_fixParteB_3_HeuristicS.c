@@ -5,10 +5,10 @@
 #include <unistd.h>
 #include <openssl/des.h> // Include OpenSSL's DES header
 
-long heuristicSearch(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
+long heuristicSearch(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 {
     long found = 0;
-    long mask = ~((1 << 10) - 1); // máscara para mantener los últimos 10 bits en 0
+    long mask = ~((1 << 10) - 1); // mask to keep the last 10 bits as 0
 
     for (long i = id; i < (1L << 56); i += N)
     {
@@ -26,9 +26,9 @@ long heuristicSearch(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm,
     return found;
 }
 
-long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
+long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 {
-    return heuristicSearch(id, N, plaintext, ciphlen, comm, req);
+    return heuristicSearch(id, N, plaintext, ciphlen, comm);
 }
 
 void decrypt(long key, char *ciph, int len)
@@ -52,8 +52,11 @@ void encrypt(long key, unsigned char *plain, int len)
         k += (key & (0xFE << i * 8));
     }
     DES_key_schedule schedule;
-    DES_set_key((const_DES_cblock *)&k, &schedule);
-    DES_ecb_encrypt((const_DES_cblock *)plain, (DES_cblock *)plain, &schedule, DES_ENCRYPT);
+    DES_set_key((const DES_cblock *)&k, &schedule);
+    for (int i = 0; i < len; i += 8)
+    {
+        DES_ecb_encrypt((const DES_cblock *)(plain + i), (DES_cblock *)(plain + i), &schedule, DES_ENCRYPT);
+    }
 }
 
 char search[] = " the ";
@@ -97,8 +100,6 @@ int main(int argc, char *argv[])
     int N, id;
     long upper = (1L << 56); // Upper bound DES keys 2^56
     MPI_Status st;
-    MPI_Request req;
-    int ready = 0;
     MPI_Comm comm = MPI_COMM_WORLD;
 
     MPI_Init(NULL, NULL);
@@ -110,11 +111,10 @@ int main(int argc, char *argv[])
 
     int ciphlen = fsize;
 
-    long found = searchForHeuristicSearch(id, N, plaintext, ciphlen, comm, &req);
+    long found = searchForDesKey(id, N, plaintext, ciphlen, comm);
 
     if (id == 0)
     {
-        MPI_Wait(&req, &st);
         decrypt(found, plaintext, ciphlen);
         printf("Decrypted text (Node %d): %s\n", id, plaintext);
     }

@@ -7,9 +7,8 @@
 
 void decrypt(long key, char *ciph, int len)
 {
-    DES_cblock des_key;
     DES_key_schedule schedule;
-    DES_key_sched((DES_cblock *)&key, &schedule);
+    DES_set_key((const_DES_cblock *)&key, &schedule);
 
     for (int i = 0; i < len; i += 8)
     {
@@ -19,15 +18,12 @@ void decrypt(long key, char *ciph, int len)
 
 void encrypt(long key, unsigned char *plain, int len)
 {
-    long k = 0;
-    for (int i = 0; i < 8; ++i)
-    {
-        key <<= 1;
-        k += (key & (0xFE << i * 8));
-    }
     DES_key_schedule schedule;
-    DES_set_key((const_DES_cblock *)&k, &schedule);
-    DES_ecb_encrypt((const_DES_cblock *)plain, (DES_cblock *)plain, &schedule, DES_ENCRYPT);
+    DES_set_key((const_DES_cblock *)&key, &schedule);
+    for (int i = 0; i < len; i += 8)
+    {
+        DES_ecb_encrypt((const_DES_cblock *)(plain + i), (DES_cblock *)(plain + i), &schedule, DES_ENCRYPT);
+    }
 }
 
 char search[] = " the ";
@@ -40,7 +36,6 @@ int tryKey(long key, char *ciph, int len)
     return strstr(temp, search) != NULL;
 }
 
-unsigned char cipher[] = {108, 245, 65, 63, 125, 200, 150, 66, 17, 170, 207, 170, 34, 31, 70, 215, 0};
 int main(int argc, char *argv[])
 {
     if (argc < 3)
@@ -70,12 +65,10 @@ int main(int argc, char *argv[])
 
     int N, id;
     long upper = (1L << 56); // Upper bound DES keys 2^56
-    MPI_Status st;
-    MPI_Request req;
     int ready = 0;
     MPI_Comm comm = MPI_COMM_WORLD;
 
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
     MPI_Comm_size(comm, &N);
     MPI_Comm_rank(comm, &id);
 
@@ -89,12 +82,11 @@ int main(int argc, char *argv[])
     long myupper = range_per_node * (id + 1) - 1;
     if (id == N - 1)
     {
-        // Compensate for the residue
         myupper = upper;
     }
 
     long found = 0;
-
+    MPI_Request req;
     MPI_Irecv(&found, 1, MPI_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG, comm, &req);
 
     for (long i = mylower; i < myupper; ++i)
@@ -116,7 +108,6 @@ int main(int argc, char *argv[])
 
     if (id == 0)
     {
-        MPI_Wait(&req, &st);
         decrypt(found, plaintext, ciphlen);
         printf("Decrypted text (Node %d): %s\n", id, plaintext);
     }
