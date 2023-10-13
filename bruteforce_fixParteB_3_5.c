@@ -30,7 +30,7 @@ void encrypt(long key, unsigned char *plain, int len)
     DES_ecb_encrypt((const_DES_cblock *)plain, (DES_cblock *)plain, &schedule, DES_ENCRYPT);
 }
 
-char search[] = "es una prueba de";
+char search[] = " the ";
 int tryKey(long key, char *ciph, int len)
 {
     char temp[len + 1];

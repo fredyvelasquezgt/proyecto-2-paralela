@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-#include <openssl/des.h>
+#include <unistd.h>
+#include <openssl/des.h> // Include OpenSSL's DES header
 
-long dynamicDivisionOfWork(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
+long dynamicDivisionOfWork(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
 {
     long found = 0;
-    long chunkSize = 1000000;
+    long chunkSize = 1000000; // tamaño arbitrario de claves para probar en cada solicitud.
     long currentLower = 0;
 
     while (!found && currentLower < (1L << 56))
@@ -24,14 +25,15 @@ long dynamicDivisionOfWork(int id, int N, char *plaintext, int ciphlen, MPI_Comm
                 return found;
             }
         }
-        currentLower += chunkSize * N;
+        currentLower += chunkSize * N; // saltamos un chunk por cada nodo
     }
     return found;
 }
 
-long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
+// Approach: División Dinámica de Trabajo
+long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
 {
-    return dynamicDivisionOfWork(id, N, plaintext, ciphlen, comm);
+    return dynamicDivisionOfWork(id, N, plaintext, ciphlen, comm, req);
 }
 
 void decrypt(long key, char *ciph, int len)
@@ -48,13 +50,15 @@ void decrypt(long key, char *ciph, int len)
 
 void encrypt(long key, unsigned char *plain, int len)
 {
-    DES_key_schedule schedule;
-    DES_set_key((const DES_cblock *)&key, &schedule);
-
-    for (int i = 0; i < len; i += 8)
+    long k = 0;
+    for (int i = 0; i < 8; ++i)
     {
-        DES_ecb_encrypt((const DES_cblock *)(plain + i), (DES_cblock *)(plain + i), &schedule, DES_ENCRYPT);
+        key <<= 1;
+        k += (key & (0xFE << i * 8));
     }
+    DES_key_schedule schedule;
+    DES_set_key((const_DES_cblock *)&k, &schedule);
+    DES_ecb_encrypt((const_DES_cblock *)plain, (DES_cblock *)plain, &schedule, DES_ENCRYPT);
 }
 
 char search[] = "es una prueba de";
@@ -67,6 +71,7 @@ int tryKey(long key, char *ciph, int len)
     return strstr(temp, search) != NULL;
 }
 
+unsigned char cipher[] = {108, 245, 65, 63, 125, 200, 150, 66, 17, 170, 207, 170, 34, 31, 70, 215, 0};
 int main(int argc, char *argv[])
 {
     if (argc < 3)
@@ -92,10 +97,13 @@ int main(int argc, char *argv[])
     unsigned char *plaintext = malloc(fsize + 1);
     fread(plaintext, 1, fsize, file);
     fclose(file);
-    plaintext[fsize] = '\0';
+    plaintext[fsize] = '\0'; // Ensure null-termination
 
     int N, id;
+    long upper = (1L << 56); // Upper bound DES keys 2^56
     MPI_Status st;
+    MPI_Request req;
+    int ready = 0;
     MPI_Comm comm = MPI_COMM_WORLD;
 
     MPI_Init(NULL, NULL);
@@ -105,11 +113,14 @@ int main(int argc, char *argv[])
     encrypt(encryption_key, plaintext, fsize);
     printf("Encrypted text (Node %d): %s\n", id, plaintext);
 
-    long found = searchForDesKey(id, N, plaintext, fsize, comm);
+    int ciphlen = fsize;
+
+    long found = searchForDesKeyDynamicDivision(id, N, plaintext, ciphlen, comm, &req);
 
     if (id == 0)
     {
-        decrypt(found, plaintext, fsize);
+        MPI_Wait(&req, &st);
+        decrypt(found, plaintext, ciphlen);
         printf("Decrypted text (Node %d): %s\n", id, plaintext);
     }
 
