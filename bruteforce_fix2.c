@@ -36,6 +36,30 @@ int tryKey(long key, char *ciph, int len) {
 
 unsigned char cipher[] = {108, 245, 65, 63, 125, 200, 150, 66, 17, 170, 207, 170, 34, 31, 70, 215, 0};
 int main(int argc, char *argv[]) {
+        if (argc < 3)
+    {
+        printf("Usage: %s <path_to_text_file> <encryption_key>\n", argv[0]);
+        return 1;
+    }
+
+    char *filename = argv[1];
+    long encryption_key = atol(argv[2]);
+
+    FILE *file = fopen(filename, "r");
+    if (!file)
+    {
+        perror("Failed to open file");
+        return 1;
+    }
+
+    fseek(file, 0, SEEK_END);
+    long fsize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    unsigned char *plaintext = malloc(fsize + 1);
+    fread(plaintext, 1, fsize, file);
+    fclose(file);
+    plaintext[fsize] = '\0'; // Ensure null-termination
     int N, id;
     long upper = (1L << 56); // Upper bound DES keys 2^56
     long mylower, myupper;

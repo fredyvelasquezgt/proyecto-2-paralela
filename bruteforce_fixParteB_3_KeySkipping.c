@@ -54,7 +54,7 @@ void encrypt(long key, unsigned char *plain, int len)
     DES_ecb_encrypt((const_DES_cblock *)plain, (DES_cblock *)plain, &schedule, DES_ENCRYPT);
 }
 
-char search[] = " the ";
+char search[] = "es una prueba de";
 int tryKey(long key, char *ciph, int len)
 {
     char temp[len + 1];
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
     int main(int argc, char *argv[])
     {
-        ... MPI_Init(NULL, NULL);
+        MPI_Init(NULL, NULL);
         MPI_Comm_size(comm, &N);
         MPI_Comm_rank(comm, &id);
 
@@ -123,3 +123,4 @@ int main(int argc, char *argv[])
         MPI_Finalize();
         return 0;
     }
+}

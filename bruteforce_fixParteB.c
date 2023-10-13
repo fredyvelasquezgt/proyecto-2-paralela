@@ -26,7 +26,7 @@ void encrypt(long key, unsigned char *plain, int len)
     }
 }
 
-char search[] = " the ";
+char search[] = "es una prueba de";
 int tryKey(long key, char *ciph, int len)
 {
     char temp[len + 1];
