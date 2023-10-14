@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <unistd.h>
-#include <openssl/des.h> // Include OpenSSL's DES header
+#include <openssl/des.h> 
 
 long heuristicSearch(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 {
     long found = 0;
-    long mask = ~((1 << 10) - 1); // mask to keep the last 10 bits as 0
+    long mask = ~((1 << 10) - 1); // Uso de herisircas. Utiliza una mascara para la llave y tratar de encontrar la llave.
 
     for (long i = id; i < (1L << 56); i += N)
     {
@@ -28,10 +28,10 @@ long heuristicSearch(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 
 long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 {
-    return heuristicSearch(id, N, plaintext, ciphlen, comm);
+    return heuristicSearch(id, N, plaintext, ciphlen, comm); //BUsqueda de llave
 }
 
-void decrypt(long key, char *ciph, int len)
+void decrypt(long key, char *ciph, int len) //DEsencriptar
 {
     DES_cblock des_key;
     DES_key_schedule schedule;
@@ -43,7 +43,7 @@ void decrypt(long key, char *ciph, int len)
     }
 }
 
-void encrypt(long key, unsigned char *plain, int len)
+void encrypt(long key, unsigned char *plain, int len) //ENcriptar
 {
     long k = 0;
     for (int i = 0; i < 8; ++i)
@@ -60,7 +60,7 @@ void encrypt(long key, unsigned char *plain, int len)
 }
 
 char search[] = "es una prueba de";
-int tryKey(long key, char *ciph, int len)
+int tryKey(long key, char *ciph, int len) //BUscar llave
 {
     char temp[len + 1];
     memcpy(temp, ciph, len);

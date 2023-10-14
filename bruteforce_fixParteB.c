@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <unistd.h>
-#include <openssl/des.h> // Include OpenSSL's DES header
+#include <openssl/des.h> 
 
-void decrypt(long key, char *ciph, int len)
+void decrypt(long key, char *ciph, int len) //Descriptar
 {
     DES_key_schedule schedule;
     DES_set_key((const_DES_cblock *)&key, &schedule);
@@ -16,7 +16,7 @@ void decrypt(long key, char *ciph, int len)
     }
 }
 
-void encrypt(long key, unsigned char *plain, int len)
+void encrypt(long key, unsigned char *plain, int len) //ENcriptar
 {
     DES_key_schedule schedule;
     DES_set_key((const_DES_cblock *)&key, &schedule);
@@ -27,7 +27,7 @@ void encrypt(long key, unsigned char *plain, int len)
 }
 
 char search[] = "es una prueba de";
-int tryKey(long key, char *ciph, int len)
+int tryKey(long key, char *ciph, int len) //POrbar llave
 {
     char temp[len + 1];
     memcpy(temp, ciph, len);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        printf("Usage: %s <path_to_text_file> <encryption_key>\n", argv[0]);
+        printf("Usage: %s <path_to_text_file> <encryption_key>\n", argv[0]); //INput
         return 1;
     }
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
             found = i;
             for (int node = 0; node < N; node++)
             {
-                MPI_Send(&found, 1, MPI_LONG, node, 0, MPI_COMM_WORLD);
+                MPI_Send(&found, 1, MPI_LONG, node, 0, MPI_COMM_WORLD); //Paralelización usando MPI
             }
             break;
         }
@@ -114,7 +114,7 @@ end_time = MPI_Wtime();
     {
         decrypt(found, plaintext, ciphlen);
         printf("Decrypted text (Node %d): %s\n", id, plaintext);
-        printf("Time elapsed: %f seconds\n", end_time - start_time);
+        printf("Time elapsed: %f seconds\n", end_time - start_time); //MEDICIṔN DE TIEMPO Y IMPRIMIR LA LLAVE.
     }
 
     free(plaintext);

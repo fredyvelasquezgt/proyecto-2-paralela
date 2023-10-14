@@ -1,10 +1,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <openssl/des.h> // Include OpenSSL's DES header
-#include <time.h> // Include time for performance measurement
+#include <openssl/des.h> 
+#include <time.h> 
 
-void decrypt(long key, char *ciph, int len) {
+void decrypt(long key, char *ciph, int len) { //FUNCIÓN DE ENCRIPTAR
     DES_cblock des_key;
     DES_key_schedule schedule;
     DES_key_sched((DES_cblock *)&key, &schedule);
@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Calculate the upper bound for the key search
-    long upper = (1L << key_length); // Key space is 2^key_length
-    int ciphlen = sizeof(cipher) - 1; // correct way to get the length of cipher
-    long found = -1; // Initialize with -1 to indicate that no key is found
+    // Calculo de upper bound
+    long upper = (1L << key_length); // Llave es 2^size
+    int ciphlen = sizeof(cipher) - 1; // tamaño del len
+    long found = -1; // LLave
 
     // Start measuring time
     clock_t begin = clock();
@@ -52,13 +52,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Stop measuring time and calculate the elapsed time
+    // Medir hasta que encuentra la llave.
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 
     if (found != -1) {
         decrypt(found, (char *)cipher, ciphlen);
-        printf("Key found: %li\nDecrypted text: %s\n", found, cipher);
+        printf("Key found: %li\nDecrypted text: %s\n", found, cipher); //DEscirar texto.
     } else {
         printf("Key not found within the range.\n");
     }

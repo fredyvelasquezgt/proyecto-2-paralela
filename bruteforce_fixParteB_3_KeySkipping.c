@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <unistd.h>
-#include <openssl/des.h> // Include OpenSSL's DES header
+#include <openssl/des.h> 
 
 long keySkipping(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
 {
@@ -16,7 +16,7 @@ long keySkipping(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI
             found = i;
             for (int node = 0; node < N; node++)
             {
-                MPI_Send(&found, 1, MPI_LONG, node, 0, comm);
+                MPI_Send(&found, 1, MPI_LONG, node, 0, comm); //Salata algunas llaves en este caso para ver si encutra. Eventualmente vuelve al correcto.
             }
             return found;
         }
@@ -26,10 +26,10 @@ long keySkipping(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI
 
 long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
 {
-    return keySkipping(id, N, plaintext, ciphlen, comm, req);
+    return keySkipping(id, N, plaintext, ciphlen, comm, req); //MIsma función
 }
 
-void decrypt(long key, char *ciph, int len)
+void decrypt(long key, char *ciph, int len)  //DEsencriptar
 {
     DES_cblock des_key;
     DES_key_schedule schedule;
@@ -41,7 +41,7 @@ void decrypt(long key, char *ciph, int len)
     }
 }
 
-void encrypt(long key, unsigned char *plain, int len)
+void encrypt(long key, unsigned char *plain, int len) //Encriptar
 {
     long k = 0;
     for (int i = 0; i < 8; ++i)
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        printf("Usage: %s <path_to_text_file> <encryption_key>\n", argv[0]);
+        printf("Usage: %s <path_to_text_file> <encryption_key>\n", argv[0]); //INputs
         return 1;
     }
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
         int ciphlen = fsize;
 
-        long found = searchForDesKey(id, N, plaintext, ciphlen, comm, &req);
+        long found = searchForDesKey(id, N, plaintext, ciphlen, comm, &req); //USO DE MPI PARA BUSCAR LA LLAVE RESPECTIVA.
 
         if (id == 0)
         {

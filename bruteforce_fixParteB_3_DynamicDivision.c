@@ -19,7 +19,7 @@ long dynamicDivisionOfWork(int id, int N, char *plaintext, int ciphlen, MPI_Comm
                 found = i;
                 for (int node = 0; node < N; node++)
                 {
-                    MPI_Send(&found, 1, MPI_LONG, node, 0, comm);
+                    MPI_Send(&found, 1, MPI_LONG, node, 0, comm); //DIvisión dínamica. LO divide dentro de chunks en cada parte de la paralelización.
                 }
                 return found;
             }
@@ -31,10 +31,10 @@ long dynamicDivisionOfWork(int id, int N, char *plaintext, int ciphlen, MPI_Comm
 
 long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 {
-    return dynamicDivisionOfWork(id, N, plaintext, ciphlen, comm);
+    return dynamicDivisionOfWork(id, N, plaintext, ciphlen, comm); //BUsqueda de la llave.
 }
 
-void decrypt(long key, char *ciph, int len)
+void decrypt(long key, char *ciph, int len) //DEsencriptar.
 {
     DES_cblock des_key;
     DES_key_schedule schedule;
@@ -46,7 +46,7 @@ void decrypt(long key, char *ciph, int len)
     }
 }
 
-void encrypt(long key, unsigned char *plain, int len)
+void encrypt(long key, unsigned char *plain, int len) //ENcriptar
 {
     DES_key_schedule schedule;
     DES_set_key((const DES_cblock *)&key, &schedule);
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     if (argc < 3)
     {
         printf("Usage: %s <path_to_text_file> <encryption_key>\n", argv[0]);
-        return 1;
+        return 1; //INputs
     }
 
     char *filename = argv[1];
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     FILE *file = fopen(filename, "r");
     if (!file)
     {
-        perror("Failed to open file");
+        perror("Failed to open file"); 
         return 1;
     }
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     MPI_Init(NULL, NULL);
     MPI_Comm_size(comm, &N);
-    MPI_Comm_rank(comm, &id);
+    MPI_Comm_rank(comm, &id); //Uso de MPI
 
     encrypt(encryption_key, plaintext, fsize);
     printf("Encrypted text (Node %d): %s\n", id, plaintext);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     if (id == 0)
     {
         decrypt(found, plaintext, fsize);
-        printf("Decrypted text (Node %d): %s\n", id, plaintext);
+        printf("Decrypted text (Node %d): %s\n", id, plaintext); //IMPRIMIR DESENCRIPCIÓN
     }
 
     free(plaintext);
