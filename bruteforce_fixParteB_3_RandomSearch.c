@@ -1,20 +1,20 @@
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
 #include <unistd.h>
-#include <openssl/des.h> // Include OpenSSL's DES header
+#include <openssl/des.h>
+#include <time.h>
 
-long randomSearch(int id, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
+long randomSearch(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm)
 {
     long found = 0;
-    srand(time(NULL) + id); // semilla de randomización basada en tiempo e ID
+    srand(time(NULL) + id);
 
     while (!found)
     {
         long randomKey = rand() % (1L << 56);
-        if (tryKey(randomKey, plaintext, ciphlen))
+        if (tryKey(randomKey, plaintext, ciphlen)) //Busqueda aleatoria, trata todo lo posible en un rango y ver si le atino, o no.
         {
             found = randomKey;
             for (int node = 0; node < N; node++)
@@ -27,16 +27,10 @@ long randomSearch(int id, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Reque
     return found;
 }
 
-long searchForDesKey(int id, int N, char *plaintext, int ciphlen, MPI_Comm comm, MPI_Request *req)
+void decrypt(long key, char *ciph, int len) //Desecnritpar
 {
-    return randomSearch(id, plaintext, ciphlen, comm, req);
-}
-
-void decrypt(long key, char *ciph, int len)
-{
-    DES_cblock des_key;
     DES_key_schedule schedule;
-    DES_key_sched((DES_cblock *)&key, &schedule);
+    DES_set_key((const_DES_cblock *)&key, &schedule);
 
     for (int i = 0; i < len; i += 8)
     {
@@ -44,17 +38,14 @@ void decrypt(long key, char *ciph, int len)
     }
 }
 
-void encrypt(long key, unsigned char *plain, int len)
+void encrypt(long key, unsigned char *plain, int len) //Encriptar
 {
-    long k = 0;
-    for (int i = 0; i < 8; ++i)
-    {
-        key <<= 1;
-        k += (key & (0xFE << i * 8));
-    }
     DES_key_schedule schedule;
-    DES_set_key((const_DES_cblock *)&k, &schedule);
-    DES_ecb_encrypt((const_DES_cblock *)plain, (DES_cblock *)plain, &schedule, DES_ENCRYPT);
+    DES_set_key((const_DES_cblock *)&key, &schedule);
+    for (int i = 0; i < len; i += 8)
+    {
+        DES_ecb_encrypt((const_DES_cblock *)(plain + i), (DES_cblock *)(plain + i), &schedule, DES_ENCRYPT);
+    }
 }
 
 char search[] = "es una prueba de";
@@ -67,7 +58,6 @@ int tryKey(long key, char *ciph, int len)
     return strstr(temp, search) != NULL;
 }
 
-unsigned char cipher[] = {108, 245, 65, 63, 125, 200, 150, 66, 17, 170, 207, 170, 34, 31, 70, 215, 0};
 int main(int argc, char *argv[])
 {
     if (argc < 3)
@@ -96,13 +86,9 @@ int main(int argc, char *argv[])
     plaintext[fsize] = '\0'; // Ensure null-termination
 
     int N, id;
-    long upper = (1L << 56); // Upper bound DES keys 2^56
-    MPI_Status st;
-    MPI_Request req;
-    int ready = 0;
     MPI_Comm comm = MPI_COMM_WORLD;
 
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
     MPI_Comm_size(comm, &N);
     MPI_Comm_rank(comm, &id);
 
@@ -111,11 +97,10 @@ int main(int argc, char *argv[])
 
     int ciphlen = fsize;
 
-    long found = searchForRandomSearch(id, plaintext, ciphlen, comm, &req);
+    long found = randomSearch(id, N, plaintext, ciphlen, comm);
 
     if (id == 0)
     {
-        MPI_Wait(&req, &st);
         decrypt(found, plaintext, ciphlen);
         printf("Decrypted text (Node %d): %s\n", id, plaintext);
     }

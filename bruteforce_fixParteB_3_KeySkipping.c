@@ -99,8 +99,7 @@ int main(int argc, char *argv[])
     int ready = 0;
     MPI_Comm comm = MPI_COMM_WORLD;
 
-    int main(int argc, char *argv[])
-    {
+
         MPI_Init(NULL, NULL);
         MPI_Comm_size(comm, &N);
         MPI_Comm_rank(comm, &id);
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
 
         int ciphlen = fsize;
 
-        long found = searchForKeySkipping(id, N, plaintext, ciphlen, comm, &req);
+        long found = searchForDesKey(id, N, plaintext, ciphlen, comm, &req);
 
         if (id == 0)
         {
@@ -122,5 +121,5 @@ int main(int argc, char *argv[])
         free(plaintext);
         MPI_Finalize();
         return 0;
-    }
+    
 }
